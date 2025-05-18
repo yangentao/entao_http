@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:entao_dutil/entao_dutil.dart';
-import 'package:entao_log/entao_log.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart' as mimes;
@@ -265,12 +264,14 @@ class HttpResult {
     null => httpOK ? (isJson ? jsonResult.msg : "OK") : switch (httpCode) { 401 => "401 未认证", 403 => "403 没有权限", 404 => "404 客户端错误", _ => "$httpCode $httpStatus" },
     _ => error.toString()
   };
+
   ListResult<T> table<T>(T Function(JsonValue e) maper) {
     if (success) {
       return ListResult<T>.success(jsonResult.tableData(maper), code: code, message: message, rawResult: this, offset: jsonResult.offset, total: jsonResult.total);
     }
     return ListResult<T>.failed(code: code, message: message, error: error, rawResult: this);
   }
+
   ListResult<T> list<T>(T Function(JsonValue e) maper) {
     if (success) {
       return ListResult<T>.success(jsonResult.listData(maper), code: code, message: message, rawResult: this, offset: jsonResult.offset, total: jsonResult.total);
