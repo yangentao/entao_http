@@ -3,10 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:any_call/any_call.dart';
 import 'package:entao_dutil/entao_dutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart' as mimes;
+import 'package:println/println.dart';
+
+part 'http_var.dart';
+
+
 
 Future<HttpResult> httpDownload(Uri url, {List<LabelValue<dynamic>>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
   return HttpGet(url).argPairs(args ?? []).headers(headers).download(toFile: toFile, onProgress: progress);
@@ -261,8 +267,16 @@ class HttpResult {
     http.ClientException ce => ce.message,
     IOException ie => ie.toString(),
     Exception ee => ee.toString(),
-    null => httpOK ? (isJson ? jsonResult.msg : "OK") : switch (httpCode) { 401 => "401 未认证", 403 => "403 没有权限", 404 => "404 客户端错误", _ => "$httpCode $httpStatus" },
-    _ => error.toString()
+    null =>
+      httpOK
+          ? (isJson ? jsonResult.msg : "OK")
+          : switch (httpCode) {
+              401 => "401 未认证",
+              403 => "403 没有权限",
+              404 => "404 客户端错误",
+              _ => "$httpCode $httpStatus",
+            },
+    _ => error.toString(),
   };
 
   ListResult<T> table<T>(T Function(JsonValue e) maper) {
@@ -295,8 +309,8 @@ class FileItem {
   late final int fileLength = file.lengthSync();
 
   FileItem({required this.field, required this.file, String? filename, String? mime, this.progress})
-      : mime = mime ?? _mimeOf(file),
-        filename = filename ?? _fileNameOf(file.path);
+    : mime = mime ?? _mimeOf(file),
+      filename = filename ?? _fileNameOf(file.path);
 }
 
 String _mimeOf(File file) {

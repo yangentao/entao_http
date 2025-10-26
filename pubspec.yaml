@@ -1,6 +1,6 @@
 name: entao_http
 description: Dart Http.
-version: 1.2.3
+version: 1.2.5
 repository: https://github.com/yangentao/entao_http
 homepage: https://github.com/yangentao/entao_http
 
@@ -10,7 +10,9 @@ environment:
 # Add regular dependencies here.
 dependencies:
   # path: ^1.8.0
-  entao_dutil: ^1.2.3
+  println: ^1.0.0
+  any_call: ^1.0.0
+  entao_dutil: ^1.2.5
 #  entao_log: ^1.0.0
   http: ^1.5.0
   http_parser: ^4.1.2
