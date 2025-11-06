@@ -12,8 +12,6 @@ import 'package:println/println.dart';
 
 part 'http_var.dart';
 
-
-
 Future<HttpResult> httpDownload(Uri url, {List<LabelValue<dynamic>>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
   return HttpGet(url).argPairs(args ?? []).headers(headers).download(toFile: toFile, onProgress: progress);
 }
@@ -254,11 +252,11 @@ class HttpResult {
 
   late final String? bodyText = bodyBytes == null ? null : _encodingOfHeaders(headers).decode(bodyBytes!);
 
-  late final JsonResult jsonResult = httpOK ? JsonResult(bodyText) : JsonResult(null);
+  late final JsonResult jsonResult = httpOK && isJson ? JsonResult.from(bodyText ?? "{}") : JsonResult.from("{}");
 
-  late final bool success = isJson ? (httpOK && jsonResult.OK) : httpOK;
+  late final bool success = httpOK && isJson ? jsonResult.success : httpOK;
 
-  late final int code = isJson ? (httpOK ? (jsonResult.code ?? -1) : httpCode) : httpCode;
+  late final int code = httpOK && isJson ? jsonResult.code : httpCode;
 
   late final String? message = switch (error) {
     SocketException se => se.desc,
@@ -269,7 +267,7 @@ class HttpResult {
     Exception ee => ee.toString(),
     null =>
       httpOK
-          ? (isJson ? jsonResult.msg : "OK")
+          ? (isJson ? jsonResult.message : "OK")
           : switch (httpCode) {
               401 => "401 未认证",
               403 => "403 没有权限",
@@ -279,23 +277,35 @@ class HttpResult {
     _ => error.toString(),
   };
 
-  ListResult<T> table<T>(T Function(JsonValue e) maper) {
+  ItemsResult<T> table<T>(T Function(Map<String, dynamic>) maper) {
     if (success) {
-      return ListResult<T>.success(jsonResult.tableData(maper), code: code, message: message, rawResult: this, offset: jsonResult.offset, total: jsonResult.total);
+      return ItemsResult<T>.success(jsonResult.dataTable(maper), rawValue: this, offset: jsonResult.offsetEx, total: jsonResult.totalEx);
     }
-    return ListResult<T>.failed(code: code, message: message, error: error, rawResult: this);
+    return ItemsResult<T>.failed(code: code, message: message, rawError: error);
   }
 
-  ListResult<T> list<T>(T Function(JsonValue e) maper) {
+  ItemsResult<T> list<T>([T Function(dynamic)? maper]) {
     if (success) {
-      return ListResult<T>.success(jsonResult.listData(maper), code: code, message: message, rawResult: this, offset: jsonResult.offset, total: jsonResult.total);
+      return ItemsResult<T>.success(jsonResult.dataList(maper), rawValue: this, offset: jsonResult.offsetEx, total: jsonResult.totalEx);
     }
-    return ListResult<T>.failed(code: code, message: message, error: error, rawResult: this);
+    return ItemsResult<T>.failed(code: code, message: message, rawError: error);
   }
 
-  DataResult<T> data<T>(T Function(JsonValue e) maper) {
-    if (success) return DataResult<T>.success(jsonResult.singleData(maper), code: code, message: message, rawResult: this);
-    return DataResult<T>.failed(code: code, message: message, error: error, rawResult: this);
+  ItemsResult<T> listModel<T>(T Function(Map<String, dynamic>) maper) {
+    if (success) {
+      return ItemsResult<T>.success(jsonResult.dataListModel(maper), rawValue: this, offset: jsonResult.offsetEx, total: jsonResult.totalEx);
+    }
+    return ItemsResult<T>.failed(code: code, message: message, rawError: error);
+  }
+
+  SingleResult<T> data<T>([T Function(dynamic)? maper]) {
+    if (success) return SingleResult<T>.success(jsonResult.dataSingle(maper) as T, rawValue: this);
+    return SingleResult<T>.failed(code: code, message: message, rawError: error);
+  }
+
+  SingleResult<T> dataModel<T>(T Function(Map<String, dynamic>) maper) {
+    if (success) return SingleResult<T>.success(maper(jsonResult.data), rawValue: this);
+    return SingleResult<T>.failed(code: code, message: message, rawError: error);
   }
 }
 

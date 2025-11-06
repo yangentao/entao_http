@@ -15,3 +15,7 @@
 
 ## 1.2.5
 * println
+
+## 2.0.0
+* JsonResult
+
