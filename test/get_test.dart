@@ -1,8 +1,3 @@
-## Http wrap for package 'http'
-
-## Usage
-
-```dart
 import 'package:entao_dutil/entao_dutil.dart';
 import 'package:entao_http/entao_http.dart';
 import 'package:println/println.dart';
@@ -17,5 +12,3 @@ void main() {
     // {"age":"44","name":"entao","headers":{"accept-encoding":"gzip","host":"localhost:8080","locale":"zh_CN","user-agent":"Dart\/3.8 (dart:io)"}}
   });
 }
-
-```

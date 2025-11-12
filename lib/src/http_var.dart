@@ -1,4 +1,4 @@
-part of 'http_impl.dart';
+part of '../entao_http.dart';
 
 class HttpX {
   final void Function(Uri uri, Map<String, String> params, Map<String, String> headers)? before;

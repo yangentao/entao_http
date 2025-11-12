@@ -10,7 +10,7 @@ void main() {
       },
     );
     HttpResult hr = await hx.get("http://localhost:8080/hole/pub/echo", name: "entao", age: 44, $locale: "zh_CN", $lang: "eng");
-    println(hr.httpOK, hr.httpCode, hr.message);
+    println(hr.code, hr.message);
     println(hr.bodyText);
   });
 }

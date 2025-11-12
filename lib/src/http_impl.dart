@@ -1,16 +1,6 @@
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:any_call/any_call.dart';
-import 'package:entao_dutil/entao_dutil.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart' as mimes;
-import 'package:println/println.dart';
+part of '../entao_http.dart';
 
-part 'http_var.dart';
 
 Future<HttpResult> httpDownload(Uri url, {List<LabelValue<dynamic>>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
   return HttpGet(url).argPairs(args ?? []).headers(headers).download(toFile: toFile, onProgress: progress);
@@ -219,95 +209,6 @@ List<http.MultipartFile> _fileItemsToMultipartFile(List<FileItem> files) {
   return list;
 }
 
-class HttpResult {
-  final http.StreamedResponse? rawResponse;
-  final dynamic error;
-
-  //request(readBytes = true)时有效.
-  Uint8List? bodyBytes;
-
-  HttpResult(this.rawResponse, [this.error]);
-
-  http.BaseRequest? get request => rawResponse?.request;
-
-  late final bool httpOK = httpCode >= 200 && httpCode < 300;
-
-  late final int httpCode = rawResponse?.statusCode ?? -1;
-
-  late final String? httpStatus = rawResponse?.reasonPhrase;
-
-  late final Map<String, String> headers = rawResponse?.headers ?? {};
-
-  late final bool isRedirect = rawResponse?.isRedirect ?? false;
-
-  late final bool persistentConnection = rawResponse?.persistentConnection ?? false;
-
-  late final int? contentLength = rawResponse?.contentLength ?? 0;
-
-  late final String? contentType = headers['content-type'];
-
-  late final bool isJson = contentType?.contains("json") ?? false;
-
-  late final http.ByteStream stream = rawResponse?.stream ?? fatal("NO http response!");
-
-  late final String? bodyText = bodyBytes == null ? null : _encodingOfHeaders(headers).decode(bodyBytes!);
-
-  late final JsonResult jsonResult = httpOK && isJson ? JsonResult.from(bodyText ?? "{}") : JsonResult.from("{}");
-
-  late final bool success = httpOK && isJson ? jsonResult.success : httpOK;
-
-  late final int code = httpOK && isJson ? jsonResult.code : httpCode;
-
-  late final String? message = switch (error) {
-    SocketException se => se.desc,
-    OSError oe => oe.desc,
-    HttpException he => he.message,
-    http.ClientException ce => ce.message,
-    IOException ie => ie.toString(),
-    Exception ee => ee.toString(),
-    null =>
-      httpOK
-          ? (isJson ? jsonResult.message : "OK")
-          : switch (httpCode) {
-              401 => "401 未认证",
-              403 => "403 没有权限",
-              404 => "404 客户端错误",
-              _ => "$httpCode $httpStatus",
-            },
-    _ => error.toString(),
-  };
-
-  ItemsResult<T> table<T>(T Function(Map<String, dynamic>) maper) {
-    if (success) {
-      return ItemsResult<T>.success(jsonResult.dataTable(maper), rawValue: this, offset: jsonResult.offsetEx, total: jsonResult.totalEx);
-    }
-    return ItemsResult<T>.failed(code: code, message: message, rawError: error);
-  }
-
-  ItemsResult<T> list<T>([T Function(dynamic)? maper]) {
-    if (success) {
-      return ItemsResult<T>.success(jsonResult.dataList(maper), rawValue: this, offset: jsonResult.offsetEx, total: jsonResult.totalEx);
-    }
-    return ItemsResult<T>.failed(code: code, message: message, rawError: error);
-  }
-
-  ItemsResult<T> listModel<T>(T Function(Map<String, dynamic>) maper) {
-    if (success) {
-      return ItemsResult<T>.success(jsonResult.dataListModel(maper), rawValue: this, offset: jsonResult.offsetEx, total: jsonResult.totalEx);
-    }
-    return ItemsResult<T>.failed(code: code, message: message, rawError: error);
-  }
-
-  SingleResult<T> data<T>([T Function(dynamic)? maper]) {
-    if (success) return SingleResult<T>.success(jsonResult.dataSingle(maper) as T, rawValue: this);
-    return SingleResult<T>.failed(code: code, message: message, rawError: error);
-  }
-
-  SingleResult<T> dataModel<T>(T Function(Map<String, dynamic>) maper) {
-    if (success) return SingleResult<T>.success(maper(jsonResult.data), rawValue: this);
-    return SingleResult<T>.failed(code: code, message: message, rawError: error);
-  }
-}
 
 class FileItem {
   final String field;
@@ -337,6 +238,7 @@ extension SocketExceptionDesc on SocketException {
   String get desc => osError?.desc ?? message;
 }
 
+/// [0-133]
 extension OSErrorDesc on OSError {
   String get desc {
     return "$message ($errorCode)";
