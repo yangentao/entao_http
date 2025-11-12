@@ -30,3 +30,7 @@
 
 * remove JsonResult
 
+## 3.0.1
+
+* token
+

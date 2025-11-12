@@ -5,7 +5,6 @@ class HttpResult {
   static const String E_MESSAGE = "e_message";
   static const String X_TOTAL = "x_total";
   static const String X_OFFSET = "x_offset";
-  static const String X_TOKEN = "x_token";
 
   final http.StreamedResponse? rawResponse;
   final dynamic error;
@@ -50,7 +49,7 @@ class HttpResult {
 
   late final int? totalX = success ? headers[X_TOTAL]?.toInt : null;
 
-  late final String? tokenX = success ? headers[X_TOKEN] : null;
+  late final String? token = headers["access_token"] ?? headers["token"];
 
   late final dynamic bodyJson = _decodeJson();
 
