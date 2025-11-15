@@ -21,7 +21,7 @@ class HttpResult {
   late final String message = _message();
 
   late final int? headerCode = headers[E_CODE]?.toInt;
-  late final String? headerMessage = headers[E_MESSAGE];
+  late final String? headerMessage = headers[E_MESSAGE]?.let((e) => Uri.decodeComponent(e));
 
   late final bool httpOK = httpCode != null && httpCode! >= 200 && httpCode! < 300;
 

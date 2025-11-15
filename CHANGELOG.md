@@ -34,3 +34,6 @@
 
 * token
 
+## 3.0.2
+* E_MESSAGE url decode
+
