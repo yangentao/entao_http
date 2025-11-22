@@ -16,7 +16,7 @@ dependencies:
   entao_lint: ^1.0.1
   println: ^1.0.4
   any_call: ^1.0.1
-  entao_dutil: ^2.0.5
+  entao_dutil: ^2.0.9
   entao_result: ^1.0.0
 
 

@@ -1,20 +1,18 @@
-
 part of '../entao_http.dart';
 
-
-Future<HttpResult> httpDownload(Uri url, {List<LabelValue<dynamic>>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
-  return HttpGet(url).argPairs(args ?? []).headers(headers).download(toFile: toFile, onProgress: progress);
+Future<HttpResult> httpDownload(Uri url, {List<LabelValue>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
+  return HttpGet(url).argPairs(args).headers(headers).download(toFile: toFile, onProgress: progress);
 }
 
-Future<HttpResult> httpGet(Uri url, {List<LabelValue<dynamic>>? args, Map<String, String>? headers}) {
+Future<HttpResult> httpGet(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
   return HttpGet(url).argPairs(args).headers(headers).request();
 }
 
-Future<HttpResult> httpPost(Uri url, {List<LabelValue<dynamic>>? args, Map<String, String>? headers}) {
+Future<HttpResult> httpPost(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
   return HttpPost(url).argPairs(args).headers(headers).request();
 }
 
-Future<HttpResult> httpMultipart(Uri url, {List<FileItem>? files, List<LabelValue<dynamic>>? args, Map<String, String>? headers}) {
+Future<HttpResult> httpMultipart(Uri url, {List<FileItem>? files, List<LabelValue>? args, Map<String, String>? headers}) {
   return HttpMultipart(url).headers(headers).argPairs(args ?? []).files(files).request();
 }
 
@@ -22,7 +20,7 @@ abstract class BaseHttp {
   final Uri uri;
   final String method;
   final Map<String, String> _headers = {};
-  final LinkedHashMap<String, String> _args = LinkedHashMap<String, String>();
+  final Map<String, String> arguments = {};
 
   BaseHttp(this.method, this.uri);
 
@@ -60,6 +58,7 @@ abstract class BaseHttp {
       }
       return hr;
     } catch (e, st) {
+      println(e);
       println(st);
       return HttpResult(null, e);
     }
@@ -68,12 +67,12 @@ abstract class BaseHttp {
 
 extension BaseHttpExt<T extends BaseHttp> on T {
   T headers(Map<String, String>? headers) {
-    if (headers != null) _headers.addAll(headers);
+    if (headers != null) this._headers.addAll(headers);
     return this;
   }
 
-  T args(Map<String, String>? args) {
-    if (args != null) _args.addAll(args);
+  T args(Map<String, dynamic>? args) {
+    argPairs(args?.entries.toList());
     return this;
   }
 
@@ -81,18 +80,18 @@ extension BaseHttpExt<T extends BaseHttp> on T {
     if (args != null) {
       for (var (String key, dynamic value) in args) {
         if (value != null) {
-          _args[key] = value.toString();
+          arguments[key] = value.toString();
         }
       }
     }
     return this;
   }
 
-  T argPairs(List<LabelValue<dynamic>>? args) {
+  T argPairs(List<LabelValue>? args) {
     if (args != null) {
       for (var a in args) {
         if (a.value != null) {
-          _args[a.label] = a.value.toString();
+          arguments[a.label] = a.value.toString();
         }
       }
     }
@@ -105,7 +104,7 @@ class HttpGet extends BaseHttp {
 
   @override
   http.BaseRequest prepareRequest() {
-    var request = http.Request(method, uri.appendedParams(_args));
+    var request = http.Request(method, uri.appendedParams(arguments));
     request.headers.addAll(_headers);
     return request;
   }
@@ -156,7 +155,7 @@ class HttpPost extends BaseHttp {
   @override
   http.BaseRequest prepareRequest() {
     bool hasBody = _bodyBytes != null;
-    var request = http.Request(method, hasBody ? uri.appendedParams(_args) : uri);
+    var request = http.Request(method, hasBody ? uri.appendedParams(arguments) : uri);
     request.headers.addAll(_headers);
     if (_bodyBytes != null) {
       request.contentType = contentType ?? "application/octet-stream";
@@ -164,7 +163,7 @@ class HttpPost extends BaseHttp {
     } else {
       /// bodyFields 自动设置 request.contentType = "application/x-www-form-urlencoded";
       request.encoding = encoding;
-      request.bodyFields = _args;
+      request.bodyFields = arguments;
     }
     return request;
   }
@@ -191,7 +190,7 @@ class HttpMultipart extends BaseHttp {
   http.BaseRequest prepareRequest() {
     var request = http.MultipartRequest(method, uri);
     request.headers.addAll(_headers);
-    request.fields.addAll(_args);
+    request.fields.addAll(arguments);
     request.files.addAll(_fileItemsToMultipartFile(_files));
     return request;
   }
@@ -209,7 +208,6 @@ List<http.MultipartFile> _fileItemsToMultipartFile(List<FileItem> files) {
   return list;
 }
 
-
 class FileItem {
   final String field;
   final File file;
@@ -220,8 +218,8 @@ class FileItem {
   late final int fileLength = file.lengthSync();
 
   FileItem({required this.field, required this.file, String? filename, String? mime, this.progress})
-    : mime = mime ?? _mimeOf(file),
-      filename = filename ?? _fileNameOf(file.path);
+      : mime = mime ?? _mimeOf(file),
+        filename = filename ?? _fileNameOf(file.path);
 }
 
 String _mimeOf(File file) {
