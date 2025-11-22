@@ -5,15 +5,17 @@ class HttpResult {
 
   HttpResult._(this._http);
 
-  Future<Result> JSON() async {
+  Future<Result> json() async {
     Result<String> r = await _http.requestText(utf8);
-    if (r case Success ok) {
-      return Success(json.decode(ok.value), extra: ok.extra);
+    switch (r) {
+      case Success ok:
+        return Success(ok.value._jsonDecode(), extra: ok.extra);
+      case Failure e:
+        return e;
     }
-    return r as Failure;
   }
 
-  Future<Result<String>> XML([Encoding encoding = utf8]) async {
+  Future<Result<String>> xml([Encoding encoding = utf8]) async {
     return await _http.requestText(encoding);
   }
 

@@ -43,3 +43,6 @@
 
 ## 3.1.1
 * HttpResult
+
+## 3.1.2
+* rename JSON to json

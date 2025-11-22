@@ -4,6 +4,12 @@ extension UriParseExt on String {
   Uri get parsedUri => Uri.parse(this);
 }
 
+extension on String {
+  dynamic _jsonDecode() {
+    return json.decode(this);
+  }
+}
+
 Failure _fromException(Object error, StackTrace stackTrace) {
   return Failure(_exceptionMessage(error), data: stackTrace, error: error, code: -1);
 }
