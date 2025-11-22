@@ -8,8 +8,8 @@ class HttpResult {
   Future<Result> json() async {
     Result<String> r = await _http.requestText(utf8);
     switch (r) {
-      case Success ok:
-        return Success(ok.value._jsonDecode(), extra: ok.extra);
+      case Success<String> ok:
+        return Success(ok.value.jsonDecode(), extra: ok.extra);
       case Failure e:
         return e;
     }

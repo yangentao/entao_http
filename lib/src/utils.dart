@@ -5,7 +5,7 @@ extension UriParseExt on String {
 }
 
 extension on String {
-  dynamic _jsonDecode() {
+  dynamic jsonDecode() {
     return json.decode(this);
   }
 }

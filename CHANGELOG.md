@@ -46,3 +46,6 @@
 
 ## 3.1.2
 * rename JSON to json
+
+## 3.1.3
+* fix json bug
