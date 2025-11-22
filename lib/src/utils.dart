@@ -124,10 +124,10 @@ extension on http.StreamedResponse {
     return Encoding.getByName(name) ?? defaultEncoding;
   }
 
-  int? get errorCode => this.headers[HttpResult.E_CODE]?.toInt;
+  int? get errorCode => this.headers[E_CODE]?.toInt;
 
   String? get errorMessage {
-    String? s = headers[HttpResult.E_MESSAGE];
+    String? s = headers[E_MESSAGE];
     if (s != null) {
       try {
         return Uri.decodeComponent(s);

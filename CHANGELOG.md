@@ -37,3 +37,6 @@
 ## 3.0.2
 * E_MESSAGE url decode
 
+## 3.1.0
+* remove HttpResult
+* add Result<T>
