@@ -1,5 +1,8 @@
 part of '../entao_http.dart';
 
+
+
+
 class HttpResult {
   static const String E_CODE = "e_code";
   static const String E_MESSAGE = "e_message";
@@ -158,21 +161,3 @@ class HttpResult {
   }
 }
 
-//  ["id", "name", "score"]
-//  [1000, "Tom", 90]
-//  [1001, "Jerry", 80]
-/// 第一行是列名, 第二行开始是数据, 类似csv格式
-List<T> _dataTableFromList<T>({required List<List<dynamic>> rows, required T Function(Map<String, dynamic>) maper}) {
-  if (rows.length <= 1) return [];
-  List<String> rowKey = rows.first.mapList((e) => e as String);
-  List<T> models = [];
-  for (int i = 1; i < rows.length; ++i) {
-    Map<String, dynamic> map = {};
-    List<dynamic> row = rows[i];
-    for (int c = 0; c < rowKey.length; ++c) {
-      map[rowKey[c]] = row[c];
-    }
-    models.add(maper(map));
-  }
-  return models;
-}

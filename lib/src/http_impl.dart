@@ -1,73 +1,59 @@
 part of '../entao_http.dart';
 
-Future<HttpResult> httpDownload(Uri url, {List<LabelValue>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
-  return HttpGet(url).argPairs(args).headers(headers).download(toFile: toFile, onProgress: progress);
-}
-
-Future<HttpResult> httpGet(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
-  return HttpGet(url).argPairs(args).headers(headers).request();
-}
-
-Future<HttpResult> httpPost(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
-  return HttpPost(url).argPairs(args).headers(headers).request();
-}
-
-Future<HttpResult> httpMultipart(Uri url, {List<FileItem>? files, List<LabelValue>? args, Map<String, String>? headers}) {
-  return HttpMultipart(url).headers(headers).argPairs(args ?? []).files(files).request();
-}
-
 abstract class BaseHttp {
   final Uri uri;
   final String method;
-  final Map<String, String> _headers = {};
+  final Map<String, String> headerMap = {};
   final Map<String, String> arguments = {};
 
   BaseHttp(this.method, this.uri);
 
   http.BaseRequest prepareRequest();
 
-  Future<HttpResult> request({bool readBytes = true}) async {
+  Future<http.StreamedResponse> requestStream() async {
     var req = prepareRequest();
+    return await req.send();
+  }
+
+  Future<Result<T>> _request<T>(Future<Result<T>> Function(http.StreamedResponse) onRead) async {
     try {
-      http.StreamedResponse resp = await req.send();
-      HttpResult hr = HttpResult(resp);
-      if (readBytes) {
-        hr.bodyBytes = await hr.stream.allBytes();
+      var req = prepareRequest();
+      http.StreamedResponse response = await req.send();
+      if (response.success) {
+        return await onRead(response);
+      } else {
+        return Failure(response.errorMessage ?? response.reasonPhrase ?? "Request failed", code: response.errorCode ?? response.statusCode);
       }
-      return hr;
     } catch (e, st) {
       println(e);
       println(st);
-      return HttpResult(null, e);
+      return _fromException(e, st);
     }
   }
 
-  Future<HttpResult> download({required File toFile, ProgressCallback? onProgress}) async {
-    var req = prepareRequest();
-    try {
-      HttpResult hr = HttpResult(await req.send());
-      if (hr.httpOK) {
-        IOSink sink = toFile.openWrite();
-        if (onProgress == null) {
-          await hr.stream.pipe(sink);
-        } else {
-          await hr.stream.progress(total: hr.contentLength ?? 1, onProgress: onProgress).pipe(sink);
-        }
-        await sink.flush();
-        await sink.close();
-      }
-      return hr;
-    } catch (e, st) {
-      println(e);
-      println(st);
-      return HttpResult(null, e);
-    }
+  Future<Result<String>> requestText([Encoding encoding = utf8]) async {
+    return _request((response) async {
+      return Success(await response.readText(encoding), extra: response.headers);
+    });
+  }
+
+  Future<Result<Uint8List>> requestBytes([ProgressCallback? progress]) async {
+    return _request((response) async {
+      return Success(await response.readBytes(progress), extra: response.headers);
+    });
+  }
+
+  Future<Result<bool>> download({required File toFile, ProgressCallback? progress}) async {
+    return _request((response) async {
+      response.download(toFile, progress: progress);
+      return Success(true);
+    });
   }
 }
 
 extension BaseHttpExt<T extends BaseHttp> on T {
   T headers(Map<String, String>? headers) {
-    if (headers != null) this._headers.addAll(headers);
+    if (headers != null) this.headerMap.addAll(headers);
     return this;
   }
 
@@ -105,7 +91,7 @@ class HttpGet extends BaseHttp {
   @override
   http.BaseRequest prepareRequest() {
     var request = http.Request(method, uri.appendedParams(arguments));
-    request.headers.addAll(_headers);
+    request.headers.addAll(headerMap);
     return request;
   }
 }
@@ -156,7 +142,7 @@ class HttpPost extends BaseHttp {
   http.BaseRequest prepareRequest() {
     bool hasBody = _bodyBytes != null;
     var request = http.Request(method, hasBody ? uri.appendedParams(arguments) : uri);
-    request.headers.addAll(_headers);
+    request.headers.addAll(headerMap);
     if (_bodyBytes != null) {
       request.contentType = contentType ?? "application/octet-stream";
       request.bodyBytes = _bodyBytes!;
@@ -189,7 +175,7 @@ class HttpMultipart extends BaseHttp {
   @override
   http.BaseRequest prepareRequest() {
     var request = http.MultipartRequest(method, uri);
-    request.headers.addAll(_headers);
+    request.headers.addAll(headerMap);
     request.fields.addAll(arguments);
     request.files.addAll(_fileItemsToMultipartFile(_files));
     return request;
@@ -220,41 +206,4 @@ class FileItem {
   FileItem({required this.field, required this.file, String? filename, String? mime, this.progress})
       : mime = mime ?? _mimeOf(file),
         filename = filename ?? _fileNameOf(file.path);
-}
-
-String _mimeOf(File file) {
-  return mimes.lookupMimeType(file.path) ?? 'application/octet-stream';
-}
-
-String _fileNameOf(String path) {
-  if (path.contains('\\')) return path.substringAfterLast("\\");
-  if (path.contains('/')) return path.substringAfterLast("/");
-  return path;
-}
-
-extension SocketExceptionDesc on SocketException {
-  String get desc => osError?.desc ?? message;
-}
-
-/// [0-133]
-extension OSErrorDesc on OSError {
-  String get desc {
-    return "$message ($errorCode)";
-  }
-}
-
-Encoding _encodingOfHeaders(Map<String, String> headers) => _encodingOfCharset(_contentTypeOfHeaders(headers).parameters['charset']);
-
-/// Returns the [MediaType] object for the given headers's content-type.
-///
-/// Defaults to `application/octet-stream`.
-MediaType _contentTypeOfHeaders(Map<String, String> headers) {
-  var contentType = headers['content-type'];
-  if (contentType != null) return MediaType.parse(contentType);
-  return MediaType('application', 'octet-stream');
-}
-
-Encoding _encodingOfCharset(String? charset, [Encoding fallback = latin1]) {
-  if (charset == null) return fallback;
-  return Encoding.getByName(charset) ?? fallback;
 }

@@ -1,16 +1,12 @@
+import 'package:entao_dutil/entao_dutil.dart';
 import 'package:entao_http/entao_http.dart';
+import 'package:entao_result/entao_result.dart';
 import 'package:println/println.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('echo', () async {
-    HttpX hx = HttpX(
-      before: (uri, params, headers) {
-        headers["entao"] = "yang";
-      },
-    );
-    HttpResult hr = await hx.get("http://localhost:8080/hole/pub/echo", name: "entao", age: 44, $locale: "zh_CN", $lang: "eng");
-    println(hr.code, hr.message);
-    println(hr.bodyText);
+    Result<String> hr = await httpGet("http://localhost:8080/hole/pub/echo".parsedUri, args: ["name" >> "entao"]);
+    println(hr);
   });
 }
