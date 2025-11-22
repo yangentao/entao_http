@@ -40,3 +40,6 @@
 ## 3.1.0
 * remove HttpResult
 * add Result<T>
+
+## 3.1.1
+* HttpResult

@@ -22,8 +22,8 @@ HttpResult httpGet(Uri url, {List<LabelValue>? args, Map<String, String>? header
   return HttpGet(url).argPairs(args).headers(headers).result;
 }
 
-HttpResult httpPost(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
-  return HttpPost(url).argPairs(args).headers(headers).result;
+HttpResult httpPost(Uri url, {List<LabelValue>? args, Map<String, String>? headers, HttpBody? body}) {
+  return HttpPost(url).argPairs(args).headers(headers).body(body).result;
 }
 
 HttpResult httpMultipart(Uri url, {List<LabelValue>? args, Map<String, String>? headers, List<FileItem>? files}) {

@@ -131,60 +131,32 @@ class HttpGet extends BaseHttp {
 
 class HttpPost extends BaseHttp {
   Encoding encoding = utf8;
-  List<int>? _bodyBytes;
-  String? contentType;
+  HttpBody? _body;
 
   HttpPost(Uri uri) : super("POST", uri);
 
-  HttpPost bodyXML(String body) {
-    return bodyText(body, contentType: "application/xml", encoding: utf8);
-  }
-
-  HttpPost bodyJson(String body) {
-    return bodyText(body, contentType: "application/json", encoding: utf8);
-  }
-
-  HttpPost bodyTextPlain(String body) {
-    return bodyText(body, contentType: "text/plain; charset=utf-8", encoding: utf8);
-  }
-
-  HttpPost bodyText(String body, {String? contentType, Encoding? encoding}) {
-    if (encoding != null) {
-      this.encoding = encoding;
-    } else if (contentType != null) {
-      MediaType m = MediaType.parse(contentType);
-      String? ch = m.parameters["charset"]?.toLowerCase();
-      if (ch != null) {
-        if (ch != "utf8" || ch != "utf-8") {
-          var e = Encoding.getByName(ch);
-          if (e != null) this.encoding = e;
-        }
-      }
-    }
-    this.contentType = contentType ?? "text/plain; charset=${this.encoding.name}";
-    _bodyBytes = this.encoding.encode(body);
-    return this;
-  }
-
-  HttpPost bodyBytes(List<int> body) {
-    _bodyBytes = body;
+  HttpPost body(HttpBody? body) {
+    if (body != null) this._body = body;
     return this;
   }
 
   @override
   http.BaseRequest prepareRequest() {
-    bool hasBody = _bodyBytes != null;
-    var request = http.Request(method, hasBody ? uri.appendedParams(arguments) : uri);
-    request.headers.addAll(headerMap);
-    if (_bodyBytes != null) {
-      request.contentType = contentType ?? "application/octet-stream";
-      request.bodyBytes = _bodyBytes!;
-    } else {
+    if (_body == null) {
       /// bodyFields 自动设置 request.contentType = "application/x-www-form-urlencoded";
+      var request = http.Request(method, uri);
+      request.headers.addAll(headerMap);
       request.encoding = encoding;
       request.bodyFields = arguments;
+      return request;
+    } else {
+      HttpBody body = _body!;
+      var request = http.Request(method, uri.appendedParams(arguments));
+      request.headers.addAll(headerMap);
+      request.contentType = body._contentType;
+      request.bodyBytes = body._bytes;
+      return request;
     }
-    return request;
   }
 }
 
@@ -239,4 +211,30 @@ class FileItem {
   FileItem({required this.field, required this.file, String? filename, String? mime, this.progress})
       : mime = mime ?? _mimeOf(file),
         filename = filename ?? _fileNameOf(file.path);
+}
+
+class HttpBody {
+  final List<int> _bytes;
+  final String _contentType;
+
+  HttpBody._(this._bytes, this._contentType);
+
+  static HttpBody binary(List<int> buffer, [String? contentType]) => HttpBody._(buffer, contentType ?? "application/octet-stream");
+
+  static HttpBody xml(String text) => HttpBody._(text.utf8Bytes(), "application/xml");
+
+  static HttpBody json(String text) => HttpBody._(text.utf8Bytes(), "application/json");
+
+  static HttpBody text(String body, {String? contentType, Encoding encoding = utf8}) {
+    Encoding enc = _parseContentTypeEncoding(contentType) ?? encoding;
+    return HttpBody._(enc.encode(body), contentType ?? "text/plain; charset=${enc.name}");
+  }
+}
+
+Encoding? _parseContentTypeEncoding(String? contentType) {
+  if (contentType == null) return null;
+  MediaType m = MediaType.parse(contentType);
+  String? ch = m.parameters["charset"]?.toLowerCase();
+  if (ch == null) return null;
+  return Encoding.getByName(ch);
 }
