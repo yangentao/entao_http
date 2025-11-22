@@ -4,8 +4,8 @@ import 'package:entao_result/entao_result.dart';
 import 'package:println/println.dart';
 
 void main() async {
-  Result<String> hr = await httpGet("http://localhost:8080/hole/pub/echo".parsedUri, args: ["name" >> "entao"]);
-  if (hr case Success(value: String v, extra: AnyMap map )) {
+  Result<String> hr = await httpGet("http://localhost:8080/hole/pub/echo".parsedUri, args: ["name" >> "entao"]).text();
+  if (hr case Success(value: String v, extra: AnyMap map)) {
     println(v);
     // {"name":"entao","headers":{"accept-encoding":"gzip","host":"localhost:8080","user-agent":"Dart\/3.8 (dart:io)"}}
     println(map);

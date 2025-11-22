@@ -18,24 +18,14 @@ part 'src/utils.dart';
 const String E_CODE = "e_code";
 const String E_MESSAGE = "e_message";
 
-Future<Result<String>> httpGet(Uri url, {List<LabelValue>? args, Map<String, String>? headers, Encoding responseEncoding = utf8}) {
-  return HttpGet(url).argPairs(args).headers(headers).requestText(responseEncoding);
+HttpResult httpGet(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
+  return HttpGet(url).argPairs(args).headers(headers).result;
 }
 
-Future<Result<String>> httpPost(Uri url, {List<LabelValue>? args, Map<String, String>? headers, Encoding responseEncoding = utf8}) {
-  return HttpPost(url).argPairs(args).headers(headers).requestText(responseEncoding);
+HttpResult httpPost(Uri url, {List<LabelValue>? args, Map<String, String>? headers}) {
+  return HttpPost(url).argPairs(args).headers(headers).result;
 }
 
-Future<Result<String>> httpMultipart(Uri url, {List<FileItem>? files, List<LabelValue>? args, Map<String, String>? headers, Encoding responseEncoding = utf8}) {
-  return HttpMultipart(url).headers(headers).argPairs(args ?? []).files(files).requestText(responseEncoding);
-}
-
-/// if return Success, Success.value alway is true.
-Future<Result<bool>> httpDownload(Uri url, {List<LabelValue>? args, Map<String, String>? headers, required File toFile, ProgressCallback? progress}) {
-  return HttpGet(url).argPairs(args).headers(headers).download(toFile: toFile, progress: progress);
-}
-
-// used for small bytes, large bytes use httpDownlaod()
-Future<Result<Uint8List>> httpGetBinary(Uri url, {List<LabelValue>? args, Map<String, String>? headers, ProgressCallback? progress}) {
-  return HttpGet(url).argPairs(args).headers(headers).requestBytes(progress);
+HttpResult httpMultipart(Uri url, {List<LabelValue>? args, Map<String, String>? headers, List<FileItem>? files}) {
+  return HttpMultipart(url).headers(headers).argPairs(args ?? []).files(files).result;
 }

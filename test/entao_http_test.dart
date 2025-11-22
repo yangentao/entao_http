@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('echo', () async {
-    Result<String> hr = await httpGet("http://localhost:8080/hole/pub/echo".parsedUri, args: ["name" >> "entao"]);
+    Result<String> hr = await httpGet("http://localhost:8080/hole/pub/echo".parsedUri, args: ["name" >> "entao"]).text();
     println(hr);
   });
 }

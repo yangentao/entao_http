@@ -1,5 +1,36 @@
 part of '../entao_http.dart';
 
+class HttpResult {
+  final BaseHttp _http;
+
+  HttpResult._(this._http);
+
+  Future<Result> JSON() async {
+    Result<String> r = await _http.requestText(utf8);
+    if (r case Success ok) {
+      return Success(json.decode(ok.value), extra: ok.extra);
+    }
+    return r as Failure;
+  }
+
+  Future<Result<String>> XML([Encoding encoding = utf8]) async {
+    return await _http.requestText(encoding);
+  }
+
+  Future<Result<String>> text([Encoding encoding = utf8]) async {
+    return await _http.requestText(encoding);
+  }
+
+  Future<Result<Uint8List>> binary([ProgressCallback? progress]) async {
+    return await _http.requestBytes(progress);
+  }
+
+  /// Success.value always true
+  Future<Result<bool>> save({required File toFile, ProgressCallback? progress}) async {
+    return await _http.download(toFile: toFile, progress: progress);
+  }
+}
+
 abstract class BaseHttp {
   final Uri uri;
   final String method;
@@ -9,6 +40,8 @@ abstract class BaseHttp {
   BaseHttp(this.method, this.uri);
 
   http.BaseRequest prepareRequest();
+
+  HttpResult get result => HttpResult._(this);
 
   Future<http.StreamedResponse> requestStream() async {
     var req = prepareRequest();
