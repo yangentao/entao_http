@@ -15,9 +15,7 @@ dependencies:
   #  async: ^2.13.0
 
   entao_lint: ^1.0.1
-  println: ^1.0.4
-  any_call: ^1.0.1
-  entao_dutil: ^2.0.11
+  entao_dutil: ^2.1.0
   entao_result: ^1.0.4
   entao_log: ^1.2.8
 
