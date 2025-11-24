@@ -10,7 +10,6 @@ import 'package:entao_result/entao_result.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart' as mimes;
-import 'package:println/println.dart';
 
 part 'src/http_impl.dart';
 part 'src/utils.dart';
