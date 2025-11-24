@@ -52,8 +52,7 @@ abstract class BaseHttp {
 
   Future<Result<T>> _request<T>(Future<Result<T>> Function(http.StreamedResponse) onRead) async {
     try {
-      var req = prepareRequest();
-      http.StreamedResponse response = await req.send();
+      http.StreamedResponse response = await requestStream();
       if (response.success) {
         return await onRead(response);
       } else {

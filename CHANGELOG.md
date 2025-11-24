@@ -49,3 +49,6 @@
 
 ## 3.1.3
 * fix json bug
+
+## 3.1.4
+* readme
