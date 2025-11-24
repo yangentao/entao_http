@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:entao_dutil/entao_dutil.dart';
+import 'package:entao_log/entao_log.dart';
 import 'package:entao_result/entao_result.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -13,6 +14,8 @@ import 'package:println/println.dart';
 
 part 'src/http_impl.dart';
 part 'src/utils.dart';
+
+final TagLog logHttp = TagLog("HTTP");
 
 /// header error code/message, message is url encoded
 const String E_CODE = "e_code";

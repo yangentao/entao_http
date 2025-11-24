@@ -52,3 +52,6 @@
 
 ## 3.1.4
 * readme
+
+## 3.1.5
+* check E_CODE

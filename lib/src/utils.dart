@@ -90,7 +90,7 @@ List<T> _dataTableFromList<T>({required List<List<dynamic>> rows, required T Fun
 }
 
 extension on http.StreamedResponse {
-  bool get success => this.statusCode >= 200 && this.statusCode < 300;
+  bool get success => this.statusCode >= 200 && this.statusCode < 300 && (errorCode == null || errorCode == 0);
 
   Future<Uint8List> readBytes([ProgressCallback? progress]) async {
     if (progress == null) {
@@ -129,6 +129,8 @@ extension on http.StreamedResponse {
     if (name == null) return defaultEncoding;
     return Encoding.getByName(name) ?? defaultEncoding;
   }
+
+  int get _ecode => errorCode ?? 0;
 
   int? get errorCode => this.headers[E_CODE]?.toInt;
 

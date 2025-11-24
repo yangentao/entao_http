@@ -9,7 +9,13 @@ class HttpResult {
     Result<String> r = await _http.requestText(utf8);
     switch (r) {
       case Success<String> ok:
-        return Success(ok.value.jsonDecode(), extra: ok.extra);
+        try {
+          return Success(ok.value.jsonDecode(), extra: ok.extra);
+        } catch (e, st) {
+          logHttp.e(e);
+          logHttp.e(st);
+          return Failure(e.toString(), error: e, data: st);
+        }
       case Failure e:
         return e;
     }
@@ -52,22 +58,32 @@ abstract class BaseHttp {
 
   Future<Result<T>> _request<T>(Future<Result<T>> Function(http.StreamedResponse) onRead) async {
     try {
+      logHttp.d("Request Uri:", uri);
+      logHttp.d("-->arguments: ", arguments);
+      logHttp.d("-->headers: ", headerMap);
       http.StreamedResponse response = await requestStream();
+      logHttp.d("Response status: ", response.statusCode);
+      logHttp.d("-->headers", response.headers);
+      if (response._ecode != 0) {
+        logHttp.d("-->E_CODE:", response.errorCode, "E_MESSAGE:", response.errorMessage);
+      }
       if (response.success) {
         return await onRead(response);
       } else {
         return Failure(response.errorMessage ?? response.reasonPhrase ?? "Request failed", code: response.errorCode ?? response.statusCode);
       }
     } catch (e, st) {
-      println(e);
-      println(st);
+      logHttp.e(e);
+      logHttp.e(st);
       return _fromException(e, st);
     }
   }
 
   Future<Result<String>> requestText([Encoding encoding = utf8]) async {
     return _request((response) async {
-      return Success(await response.readText(encoding), extra: response.headers);
+      String s = await response.readText(encoding);
+      logHttp.d("-->body: ", s);
+      return Success(s, extra: response.headers);
     });
   }
 
