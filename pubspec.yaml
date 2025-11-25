@@ -5,7 +5,8 @@ repository: https://github.com/yangentao/entao_http
 homepage: https://github.com/yangentao/entao_http
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.6.0
+resolution: workspace
 
 # Add regular dependencies here.
 dependencies:
@@ -15,11 +16,12 @@ dependencies:
   #  async: ^2.13.0
 
   entao_lint: ^1.0.1
-  entao_dutil: ^2.1.0
+  entao_dutil: ^2.1.1
   entao_result: ^1.0.4
   entao_log: ^1.2.8
 
 
 dev_dependencies:
+  println: ^1.0.4
   lints: any
   test: any
