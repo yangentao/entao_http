@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:entao_dutil/entao_dutil.dart';
 import 'package:entao_log/entao_log.dart';
-import 'package:entao_result/entao_result.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart' as mimes;

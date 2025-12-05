@@ -55,3 +55,6 @@
 
 ## 3.1.5
 * check E_CODE
+
+## 3.2.0
+* change Result to XResult

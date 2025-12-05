@@ -10,8 +10,8 @@ extension on String {
   }
 }
 
-Failure _fromException(Object error, StackTrace stackTrace) {
-  return Failure(_exceptionMessage(error), data: stackTrace, error: error, code: -1);
+XError _fromException(Object error, StackTrace stackTrace) {
+  return XError(_exceptionMessage(error), data: stackTrace, error: error, code: -1);
 }
 
 String _exceptionMessage(Object error) {

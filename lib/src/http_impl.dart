@@ -5,36 +5,29 @@ class HttpResult {
 
   HttpResult._(this._http);
 
-  Future<Result> json() async {
-    Result<String> r = await _http.requestText(utf8);
-    switch (r) {
-      case Success<String> ok:
-        try {
-          return Success(ok.value.jsonDecode(), extra: ok.extra);
-        } catch (e, st) {
-          logHttp.e(e);
-          logHttp.e(st);
-          return Failure(e.toString(), error: e, data: st);
-        }
-      case Failure e:
-        return e;
+  Future<XResult> json() async {
+    XResult<String> r = await _http.requestText(utf8);
+    try {
+      return r.mapResult((e) => e.jsonDecode());
+    } catch (e, st) {
+      return XError(e.toString(), data: st.toString());
     }
   }
 
-  Future<Result<String>> xml([Encoding encoding = utf8]) async {
+  Future<XResult<String>> xml([Encoding encoding = utf8]) async {
     return await _http.requestText(encoding);
   }
 
-  Future<Result<String>> text([Encoding encoding = utf8]) async {
+  Future<XResult<String>> text([Encoding encoding = utf8]) async {
     return await _http.requestText(encoding);
   }
 
-  Future<Result<Uint8List>> binary([ProgressCallback? progress]) async {
+  Future<XResult<Uint8List>> binary([ProgressCallback? progress]) async {
     return await _http.requestBytes(progress);
   }
 
   /// Success.value always true
-  Future<Result<bool>> save({required File toFile, ProgressCallback? progress}) async {
+  Future<XResult<bool>> save({required File toFile, ProgressCallback? progress}) async {
     return await _http.download(toFile: toFile, progress: progress);
   }
 }
@@ -56,7 +49,7 @@ abstract class BaseHttp {
     return await req.send();
   }
 
-  Future<Result<T>> _request<T>(Future<Result<T>> Function(http.StreamedResponse) onRead) async {
+  Future<XResult<T>> _request<T>(Future<XResult<T>> Function(http.StreamedResponse) onRead) async {
     try {
       logHttp.d("Request Uri:", uri);
       logHttp.d("-->arguments: ", arguments);
@@ -70,7 +63,7 @@ abstract class BaseHttp {
       if (response.success) {
         return await onRead(response);
       } else {
-        return Failure(response.errorMessage ?? response.reasonPhrase ?? "Request failed", code: response.errorCode ?? response.statusCode);
+        return XError(response.errorMessage ?? response.reasonPhrase ?? "Request failed", code: response.errorCode ?? response.statusCode);
       }
     } catch (e, st) {
       logHttp.e(e);
@@ -79,24 +72,24 @@ abstract class BaseHttp {
     }
   }
 
-  Future<Result<String>> requestText([Encoding encoding = utf8]) async {
+  Future<XResult<String>> requestText([Encoding encoding = utf8]) async {
     return _request((response) async {
       String s = await response.readText(encoding);
       logHttp.d("-->body: ", s);
-      return Success(s, extra: response.headers);
+      return XSuccess(s, extra: response.headers);
     });
   }
 
-  Future<Result<Uint8List>> requestBytes([ProgressCallback? progress]) async {
+  Future<XResult<Uint8List>> requestBytes([ProgressCallback? progress]) async {
     return _request((response) async {
-      return Success(await response.readBytes(progress), extra: response.headers);
+      return XSuccess(await response.readBytes(progress), extra: response.headers);
     });
   }
 
-  Future<Result<bool>> download({required File toFile, ProgressCallback? progress}) async {
+  Future<XResult<bool>> download({required File toFile, ProgressCallback? progress}) async {
     return _request((response) async {
       response.download(toFile, progress: progress);
-      return Success(true);
+      return XSuccess(true);
     });
   }
 }
