@@ -58,3 +58,5 @@
 
 ## 3.2.0
 * change Result to XResult
+## 3.2.1
+* readme
