@@ -49,8 +49,8 @@ class Product {
 
 XResult jr = await httpGet(uri, args: ["pruductId" >> 100]).json();
 if(jr.success){
-  Product p = ok.model(Product.new);
+  Product p = jr.model(Product.new);
   // list model
-  List<Product> products = ok.listModel(Product.new);
+  List<Product> products = jr.listModel(Product.new);
 }
 ```
