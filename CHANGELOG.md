@@ -60,3 +60,5 @@
 * change Result to XResult
 ## 3.2.1
 * readme
+## 3.2.2
+* update dutil package
