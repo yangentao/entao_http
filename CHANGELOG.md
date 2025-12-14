@@ -62,3 +62,6 @@
 * readme
 ## 3.2.2
 * update dutil package
+
+## 3.2.3
+* update package entao_log
